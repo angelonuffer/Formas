@@ -21,6 +21,9 @@ class Element
   def []=(key, value)
     @parameters[key] = value
   end
+  def [](key)
+    @parameters[key]
+  end
   def name
     @name
   end
