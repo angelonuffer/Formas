@@ -3,7 +3,7 @@ class Widget
     @ws = ws
     @element = element
     @id = id
-    @element["id"] = @id
+    @element[:id] = @id
     ws.send "document.write('%s')" % @element.to_s
   end
   def element

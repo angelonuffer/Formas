@@ -8,7 +8,7 @@ describe Element do
   it "has a string representation" do
     element = Element.new "a"
     element.to_s.should == "<a />"
-    element["href"] = "/"
+    element[:href] = "/"
     element.to_s.should == '<a href="/" />'
     element.append "home page"
     element.to_s.should == '<a href="/">home page</a>'
@@ -18,8 +18,8 @@ describe Element do
   end
   it "has parameters" do
     element = Element.new "a"
-    element["href"] = "/"
-    element.parameters.should == {"href" => "/"}
+    element[:href] = "/"
+    element.parameters.should == {:href => "/"}
   end
   it "has childrens" do
     div = Element.new "div"

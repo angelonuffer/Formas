@@ -7,6 +7,6 @@ describe Widget do
     div = Element.new "div"
     widget = Widget.new(ws, div, "widget_id")
     widget.element.should == div
-    div["id"].should == "widget_id"
+    div[:id].should == "widget_id"
   end
 end
