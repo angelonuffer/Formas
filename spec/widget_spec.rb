@@ -20,6 +20,18 @@ describe LoginForm do
     login_form.element.to_s.should include '<input type="text" name="name" />'
     login_form.element.to_s.should include '<input type="text" name="password" />'
   end
+  it "has a button to log in" do
+    ws = mock()
+    ws.stub!(:send)
+    login_form = LoginForm.new ws
+    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form login\\\')">log in</button>'
+  end
+  it "has a link to sign up" do
+    ws = mock()
+    ws.stub!(:send)
+    login_form = LoginForm.new ws
+    login_form.element.to_s.should include '<a href="#" onclick="sock.send(\\\'login_form signup\\\')">sign up</a>'
+  end
 end
 
 describe Field do

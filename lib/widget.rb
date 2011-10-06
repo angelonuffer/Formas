@@ -21,8 +21,17 @@ class LoginForm < Widget
     element = Element.new "div"
     name = Field.new(ws, "name")
     password = Field.new(ws, "password")
+    signup = Element.new "a"
+    signup[:href] = "#"
+    signup[:onclick] = "sock.send(\\'login_form signup\\')"
+    signup.append "sign up"
+    login = Element.new "button"
+    login[:onclick] = "sock.send(\\'login_form login\\')"
+    login.append "log in"
     element.append name
     element.append password
+    element.append signup
+    element.append login
     super(ws, element, "login_form")
   end
 end
