@@ -28,3 +28,11 @@ describe Element do
     div.children.should == [a]
   end
 end
+
+describe Field do
+  it "has a label and a input" do
+    field = Field.new("field name")
+    field.to_s.should include '<p>field name:</p>'
+    field.to_s.should include '<input type="text" name="field_name" />'
+  end
+end

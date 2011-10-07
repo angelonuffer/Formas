@@ -3,10 +3,14 @@ class Element
     @name = name
     @parameters = Hash.new
     @children = Array.new
+    @hidden = false
   end
   def to_s
     element_s = "<%s" % @name
     @parameters.each { |key, value| element_s += ' %s="%s"' % [key, value] }
+    if @hidden
+      element_s += " hidden"
+    end
     if @children == []
       element_s += " />"
     else
@@ -33,7 +37,26 @@ class Element
   def children
     @children
   end
+  def hidden
+    @hidden
+  end
+  def hidden=(value)
+    @hidden = value
+  end
   def append(element)
     @children << element
+  end
+end
+
+class Field < Element
+  def initialize(name, type="text")
+    super("div")
+    label = Element.new "p"
+    label.append "%s:" % name
+    input = Element.new "input"
+    input[:type] = type
+    input[:name] = name.gsub(" ", "_")
+    append label
+    append input
   end
 end
