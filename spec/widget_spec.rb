@@ -34,3 +34,15 @@ describe LoginForm do
     login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form signup\\\')">sign up</button>'
   end
 end
+
+describe SignupForm do
+  it "has name, e-mail and password fields" do
+    ws = mock()
+    ws.stub!(:send)
+    signup_form = SignupForm.new ws
+    signup_form.element.to_s.should include '<input type="text" name="name" />'
+    signup_form.element.to_s.should include '<input type="text" name="email" />'
+    signup_form.element.to_s.should include '<input type="password" name="password" />'
+    signup_form.element.to_s.should include '<input type="password" name="confirm_password" />'
+  end
+end
