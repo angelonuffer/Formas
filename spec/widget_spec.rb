@@ -25,22 +25,23 @@ describe LoginForm do
     ws = mock()
     ws.stub!(:send)
     login_form = LoginForm.new ws
-    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form login\\\')">log in</button>'
+    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form:login\\\')">log in</button>'
   end
   it "has a button to sign up" do
     ws = mock()
     ws.stub!(:send)
     login_form = LoginForm.new ws
-    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form signup\\\')">sign up</button>'
+    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form:signup\\\')">sign up</button>'
   end
 end
 
 describe SignupForm do
-  it "has name, e-mail and password fields" do
+  it "has username, complete name, e-mail and password fields" do
     ws = mock()
     ws.stub!(:send)
     signup_form = SignupForm.new ws
-    signup_form.element.to_s.should include '<input type="text" name="name" />'
+    signup_form.element.to_s.should include '<input type="text" name="username" />'
+    signup_form.element.to_s.should include '<input type="text" name="complete_name" />'
     signup_form.element.to_s.should include '<input type="text" name="email" />'
     signup_form.element.to_s.should include '<input type="password" name="password" />'
     signup_form.element.to_s.should include '<input type="password" name="confirm_password" />'

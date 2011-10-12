@@ -12,12 +12,19 @@ EventMachine.run {
             login_form.put
         }
         ws.onmessage { |message|
-            widget_id = message.split[0]
+            command = message.split ":"
+            widget_id = command[0]
             if widgets.keys.include? widget_id
                 widget = widgets[widget_id]
-                method_name = message.split[1]
+                method_name = command[1]
                 if widget.widget_public_methods.include? method_name
-                    widget.send method_name
+                    parameters = command[2]
+                    if parameters == nil
+                        parameters = Array.new
+                    else
+                        parameters = parameters.split(";")
+                    end
+                    widget.send(method_name, *parameters)
                 end
             end
         }
