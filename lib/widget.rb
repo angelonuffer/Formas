@@ -22,8 +22,9 @@ class Widget
 end
 
 class LoginForm < Widget
-  def initialize(ws, widgets=Array.new)
+  def initialize(ws, widgets=Hash.new, redis=nil)
     @widgets = widgets
+    @redis = redis
     @action = nil
     element = Element.new "div"
     title = Element.new "h2"
@@ -54,7 +55,7 @@ class LoginForm < Widget
     @widgets.delete "login_form"
     @ws.send "$('#%s').remove()" % @id
     if @action == :signup
-      signup_form = SignupForm.new(@ws, @widgets)
+      signup_form = SignupForm.new(@ws, @widgets, @redis)
       @widgets["signup_form"] = signup_form
       signup_form.put
     end
@@ -62,8 +63,9 @@ class LoginForm < Widget
 end
 
 class SignupForm < Widget
-  def initialize(ws, widgets=Array.new)
+  def initialize(ws, widgets=Hash.new, redis=nil)
     @widgets = widgets
+    @redis = redis
     element = Element.new "div"
     title = Element.new "h2"
     title.append "Signup"
@@ -111,13 +113,49 @@ class SignupForm < Widget
     end
   end
   def signup(username, completename, email, password, confirmpassword)
-    redis = Redis.new
-    if password == confirmpassword and not redis.lrange("users", 0, -1).include? username
-      redis.set "users:#{username}:complete_name", completename
-      redis.set "users:#{username}:e-mail", email
-      redis.set "users:#{username}:password", Digest::SHA2.hexdigest(password)
-      redis.rpush "users", username
-      back
+    if @redis.lrange("users", 0, -1).include? username
+      @ws.send "$('div#signup_form input[name=username]').css('background-color', 'red')"
+      error_box = ErrorBox.new @ws, "Username already exists", @widgets
+      @widgets["error_box"] = error_box
+      error_box.put
+      return
     end
+    if password != confirmpassword
+      @ws.send "$('div#signup_form input[type=password]').css('background-color', 'red')"
+      error_box = ErrorBox.new @ws, "The passwords are not identical", @widgets
+      @widgets["error_box"] = error_box
+      error_box.put
+      return
+    end
+    @redis.set "users:#{username}:complete_name", completename
+    @redis.set "users:#{username}:e-mail", email
+    @redis.set "users:#{username}:password", Digest::SHA2.hexdigest(password)
+    @redis.rpush "users", username
+    back
+  end
+end
+
+class ErrorBox < Widget
+  def initialize ws, message, widgets=Hash.new
+    @widgets = widgets
+    element = Element.new "div"
+    text = Element.new "p"
+    text.append message
+    close = Element.new "button"
+    close[:onclick] = "sock.send(\\'error_box:close\\')"
+    close.append "X"
+    element.append text
+    element.append close
+    super ws, element, "error_box"
+  end
+  def widget_public_methods
+    ["close"]
+  end
+  def close
+    @ws.send "$('#error_box').fadeOut('slow', function() { sock.send('error_box:end') })"
+  end
+  def end
+    @widgets.delete "error_box"
+    @ws.send "$('#%s').remove()" % @id
   end
 end

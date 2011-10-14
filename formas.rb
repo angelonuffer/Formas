@@ -6,8 +6,9 @@ EventMachine.run {
 
     EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 8080) do |ws|
         widgets = Hash.new
+        redis = Redis.new
         ws.onopen {
-            login_form = LoginForm.new(ws, widgets)
+            login_form = LoginForm.new(ws, widgets, redis)
             widgets["login_form"] = login_form
             login_form.put
         }

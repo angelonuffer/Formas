@@ -47,3 +47,11 @@ describe SignupForm do
     signup_form.element.to_s.should include '<input type="password" name="confirm_password" />'
   end
 end
+
+describe ErrorBox do
+  it "has a message" do
+    ws = mock()
+    error_box = ErrorBox.new ws, "error message"
+    error_box.to_s.should include '<p>error message</p>'
+  end
+end
