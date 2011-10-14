@@ -25,7 +25,8 @@ describe LoginForm do
     ws = mock()
     ws.stub!(:send)
     login_form = LoginForm.new ws
-    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form:login\\\')">log in</button>'
+    login_form.element.to_s.should include '<button onclick="sock.send(\\\'login_form:login:\\\''
+    login_form.element.to_s.should include ')">log in</button>'
   end
   it "has a button to sign up" do
     ws = mock()

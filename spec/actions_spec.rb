@@ -24,3 +24,17 @@ describe "Signup action" do
     signup_form.signup "username", "completename", "name@domain.com", "password", "password"
   end
 end
+
+describe "Login action" do
+  it "needs to match the login and the password" do
+    ws = mock()
+    redis = mock()
+    redis.stub!(:lrange).with("users", 0, -1).and_return(["username"])
+    redis.stub!(:get).with("users:username:password").and_return(Digest::SHA2::hexdigest"password")
+    error_box = ErrorBox.new ws, "Wrong login or password"
+    ws.stub!(:send).with("document.body.innerHTML += '#{error_box}'")
+    ws.stub!(:send).with("$('#error_box').fadeIn('slow')")
+    login_form = LoginForm.new ws, Hash.new, redis
+    login_form.login "username", "not_matched_password"
+  end
+end

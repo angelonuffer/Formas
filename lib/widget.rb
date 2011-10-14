@@ -26,6 +26,7 @@ class LoginForm < Widget
     @widgets = widgets
     @redis = redis
     @action = nil
+    @username = String.new
     element = Element.new "div"
     title = Element.new "h2"
     title.append "Login"
@@ -35,7 +36,10 @@ class LoginForm < Widget
     signup[:onclick] = "sock.send(\\'login_form:signup\\')"
     signup.append "sign up"
     login = Element.new "button"
-    login[:onclick] = "sock.send(\\'login_form:login\\')"
+    login[:onclick] = "sock.send("
+    login[:onclick] += "\\'login_form:login:\\' + "
+    login[:onclick] += "$(\\'input[name=name]\\')[0].value + \\';\\' + "
+    login[:onclick] += "$(\\'input[name=password]\\')[0].value)"
     login.append "log in"
     element.append title
     element.append name
@@ -45,7 +49,7 @@ class LoginForm < Widget
     super(ws, element, "login_form")
   end
   def widget_public_methods
-    ["signup", "end"]
+    ["signup", "end", "login"]
   end
   def signup
     @ws.send "$('#%s').fadeOut('slow', function() { sock.send('login_form:end') })" % @id
@@ -59,6 +63,23 @@ class LoginForm < Widget
       @widgets["signup_form"] = signup_form
       signup_form.put
     end
+  end
+  def login username, password
+    if not @redis.lrange("users", 0, -1).include? username
+      error_box = ErrorBox.new @ws, "Wrong login or password", @widgets
+      @widgets["error_box"] = error_box
+      error_box.put
+      return
+    end
+    if @redis.get("users:#{username}:password") != Digest::SHA2::hexdigest(password)
+      error_box = ErrorBox.new @ws, "Wrong login or password", @widgets
+      @widgets["error_box"] = error_box
+      error_box.put
+      return
+    end
+    @username = username
+    @ws.send "$('#%s').fadeOut('slow', function() { sock.send('login_form:end') })" % @id
+    @action = :login
   end
 end
 
@@ -107,7 +128,7 @@ class SignupForm < Widget
     @widgets.delete "signup_form"
     @ws.send "$('#%s').remove()" % @id
     if @action == :back
-      login_form = LoginForm.new(@ws, @widgets)
+      login_form = LoginForm.new(@ws, @widgets, @redis)
       @widgets["login_form"] = login_form
       login_form.put
     end
@@ -149,7 +170,7 @@ class ErrorBox < Widget
     super ws, element, "error_box"
   end
   def widget_public_methods
-    ["close"]
+    ["close", "end"]
   end
   def close
     @ws.send "$('#error_box').fadeOut('slow', function() { sock.send('error_box:end') })"
