@@ -63,6 +63,11 @@ class LoginForm < Widget
       @widgets["signup_form"] = signup_form
       signup_form.put
     end
+    if @action == :login
+      user_bar = UserBar.new @ws, @widgets, @redis, @username
+      @widgets["user_bar"] = user_bar
+      user_bar.put
+    end
   end
   def login username, password
     if not @redis.lrange("users", 0, -1).include? username
@@ -178,5 +183,35 @@ class ErrorBox < Widget
   def end
     @widgets.delete "error_box"
     @ws.send "$('#%s').remove()" % @id
+  end
+end
+
+class UserBar < Widget
+  def initialize ws, widgets=Hash.new, redis=nil, username
+    @widgets = widgets
+    @redis = redis
+    @username = username
+    element = Element.new "div"
+    username = Element.new "span"
+    username.append @username
+    logout = Element.new "button"
+    logout[:onclick] = "sock.send(\\'user_bar:logout\\')"
+    logout.append "log out"
+    element.append logout
+    element.append username
+    super ws, element, "user_bar"
+  end
+  def widget_public_methods
+    ["logout", "end"]
+  end
+  def logout
+    @ws.send "$('#user_bar').fadeOut('slow', function() { sock.send('user_bar:end') })"
+  end
+  def end
+    @widgets.delete "error_box"
+    @ws.send "$('#%s').remove()" % @id
+    login_form = LoginForm.new @ws, @widgets, @redis
+    @widgets["login_form"] = login_form
+    login_form.put
   end
 end

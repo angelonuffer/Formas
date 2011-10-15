@@ -56,3 +56,12 @@ describe ErrorBox do
     error_box.to_s.should include '<p>error message</p>'
   end
 end
+
+describe UserBar do
+  it "has a logout button" do
+    ws = mock()
+    ws.stub!(:send)
+    user_bar = UserBar.new ws, "username"
+    user_bar.to_s.should include '<button onclick="sock.send(\\\'user_bar:logout\\\')">log out</button>'
+  end
+end
