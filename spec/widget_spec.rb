@@ -65,3 +65,18 @@ describe UserBar do
     user_bar.to_s.should include '<button onclick="sock.send(\\\'user_bar:logout\\\')">log out</button>'
   end
 end
+
+describe InfoBox do
+  it "has the profile image, the name and the e-mail of user" do
+    ws = mock()
+    ws.stub!(:send)
+    redis = mock()
+    redis.stub!(:get).with("users:username:complete_name").and_return("Complete Name")
+    redis.stub!(:get).with("users:username:e-mail").and_return("username@domain.com")
+    email_hash = Digest::MD5.hexdigest "username@domain.com"
+    info_box = InfoBox.new ws, Hash.new, redis, "username"
+    info_box.to_s.should include "<img src=\"http://www.gravatar.com/avatar/#{email_hash}\" />"
+    info_box.to_s.should include "<h1>Complete Name</h1>"
+    info_box.to_s.should include "<span>username@domain.com</span>"
+  end
+end

@@ -12,12 +12,29 @@ class Widget
   def to_s
     @element.to_s
   end
+  def id
+    @id
+  end
   def element
     @element
   end
   def put
     @ws.send "document.body.innerHTML += '%s'" % @element.to_s
     @ws.send "$('#%s').fadeIn('slow')" % @id
+  end
+  def put_all widgets
+    widgets.each{ |widget|
+      @ws.send "document.body.innerHTML += '#{widget.to_s}'"
+    }
+    fade_in = String.new
+    widgets.each{ |widget|
+      fade_in += "$('##{widget.id}').fadeIn('slow', function() {"
+    }
+    fade_in += "})" * widgets.length
+    @ws.send fade_in
+  end
+  def remove_all_widgets
+    @ws.send "$('div').fadeOut('slow', function() { $('div').remove(); sock.send('#{@id}:end')})"
   end
 end
 
@@ -66,7 +83,9 @@ class LoginForm < Widget
     if @action == :login
       user_bar = UserBar.new @ws, @widgets, @redis, @username
       @widgets["user_bar"] = user_bar
-      user_bar.put
+      info_box = InfoBox.new @ws, @widgets, @redis, @username
+      @widgets["info_box"] = info_box
+      put_all [user_bar, info_box]
     end
   end
   def login username, password
@@ -205,13 +224,35 @@ class UserBar < Widget
     ["logout", "end"]
   end
   def logout
-    @ws.send "$('#user_bar').fadeOut('slow', function() { sock.send('user_bar:end') })"
+    remove_all_widgets
   end
   def end
-    @widgets.delete "error_box"
-    @ws.send "$('#%s').remove()" % @id
+    @widgets.keys.each{ |widget_id| @widgets.delete widget_id }
     login_form = LoginForm.new @ws, @widgets, @redis
     @widgets["login_form"] = login_form
     login_form.put
+  end
+end
+
+class InfoBox < Widget
+  def initialize ws, widgets=Hash.new, redis=nil, username
+    @widgets = widgets
+    @redis = redis
+    @username = username
+    email_text = redis.get "users:#{@username}:e-mail"
+    email_hash = Digest::MD5.hexdigest email_text
+    element = Element.new "div"
+    image = Element.new "img"
+    image[:src] = "http://www.gravatar.com/avatar/#{email_hash}"
+    text_info = Element.new "div"
+    name = Element.new "h1"
+    name.append(redis.get "users:#{@username}:complete_name")
+    email = Element.new "span"
+    email.append email_text
+    text_info.append name
+    text_info.append email
+    element.append image
+    element.append text_info
+    super ws, element, "info_box"
   end
 end
