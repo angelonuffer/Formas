@@ -212,6 +212,7 @@ class UserBar < Widget
     @username = username
     element = Element.new "div"
     username = Element.new "span"
+    username[:onclick] = "sock.send(\\'info_box:set_user:#{@username}\\')"
     username.append @username
     logout = Element.new "button"
     logout[:onclick] = "sock.send(\\'user_bar:logout\\')"
