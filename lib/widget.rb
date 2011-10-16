@@ -61,8 +61,8 @@ class LoginForm < Widget
     element.append title
     element.append name
     element.append password
-    element.append login
     element.append signup
+    element.append login
     super(ws, element, "login_form")
   end
   def widget_public_methods
@@ -137,8 +137,8 @@ class SignupForm < Widget
     element.append email
     element.append password
     element.append confirmpassword
-    element.append signup
     element.append back
+    element.append signup
     super(ws, element, "signup_form")
   end
   def widget_public_methods
@@ -249,10 +249,28 @@ class InfoBox < Widget
     name.append(redis.get "users:#{@username}:complete_name")
     email = Element.new "span"
     email.append email_text
+    search = Element.new "input"
+    search[:type] = "text"
+    search[:onkeypress] = "if (event.which == 13) { sock.send(\\'info_box:set_user:\\' + this.value) }"
     text_info.append name
     text_info.append email
     element.append image
+    element.append search
     element.append text_info
     super ws, element, "info_box"
+  end
+  def widget_public_methods
+    ["set_user", "end"]
+  end
+  def set_user name
+    @ws.send "$('#info_box').fadeOut('slow', function() { sock.send('info_box:end') })"
+    @new_user_name = name
+  end
+  def end
+    @widgets.delete "info_box"
+    @ws.send "$('#info_box').remove()"
+    info_box = InfoBox.new @ws, @widgets, @redis, @new_user_name
+    @widgets["info_box"] = info_box
+    info_box.put
   end
 end

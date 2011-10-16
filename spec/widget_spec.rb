@@ -79,4 +79,13 @@ describe InfoBox do
     info_box.to_s.should include "<h1>Complete Name</h1>"
     info_box.to_s.should include "<span>username@domain.com</span>"
   end
+  it "has a user search field" do
+    ws = mock()
+    ws.stub!(:send)
+    redis = mock()
+    redis.stub!(:get).with("users:username:complete_name").and_return("Complete Name")
+    redis.stub!(:get).with("users:username:e-mail").and_return("username@domain.com")
+    info_box = InfoBox.new ws, Hash.new, redis, "username"
+    info_box.to_s.should include '<input type="text" '
+  end
 end
